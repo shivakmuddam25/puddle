@@ -1,0 +1,29 @@
+@echo off
+echo ========================================
+echo Fixing Next.js Cache Corruption
+echo ========================================
+
+echo Step 1: Stopping any running processes...
+taskkill /F /IM node.exe 2>nul
+timeout /t 2 /nobreak >nul
+
+echo Step 2: Clearing ALL cache...
+echo Deleting .next folder...
+rmdir /s /q .next 2>nul
+echo Deleting .turbo folder...
+rmdir /s /q .turbo 2>nul
+echo Deleting package-lock.json...
+del package-lock.json 2>nul
+
+echo Step 3: Clearing npm cache...
+npm cache clean --force
+
+echo Step 4: Reinstalling dependencies...
+rmdir /s /q node_modules 2>nul
+npm install
+
+echo Step 5: Starting fresh dev server...
+echo.
+echo ✅ Cache cleared! Starting dev server...
+echo.
+npm run dev

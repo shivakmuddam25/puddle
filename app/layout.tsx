@@ -1,3 +1,4 @@
+// app/layout.tsx
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
@@ -6,7 +7,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Educational Platform',
-  description: 'Learn and teach with our educational platform',
+  description: 'A complete platform for students, creators, and reviewers',
 }
 
 export default function RootLayout({
