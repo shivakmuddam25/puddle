@@ -1,4 +1,4 @@
-// app/page.tsx - WITH ACTUAL OLIVE COLOR APPLICATIONS
+// app/page.tsx - WITH ORIGINAL LOGO DESIGN
 "use client"
 
 import Link from 'next/link'
@@ -27,34 +27,103 @@ import {
   DollarSign,
   User,
   LogIn,
-  Leaf,
-  TreePine,
-  Sprout,
-  Droplets,
-  Trophy
+  BookOpen,
+  School,
+  Globe,
+  Calculator,
+  Microscope,
+  BookMarked,
+  Palette,
+  Edit3,
+  Eye,
+  Layout,
+  Sparkles,
+  Trophy,
+  Info,
+  HelpCircle,
+  ChevronDown
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 export default function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [showLoginOptions, setShowLoginOptions] = useState(false)
+  const [showStudyLevels, setShowStudyLevels] = useState(false)
+  const [userType, setUserType] = useState('student')
+  
+  // Refs for click outside detection
+  const loginDropdownRef = useRef<HTMLDivElement>(null)
+  const studyLevelsDropdownRef = useRef<HTMLDivElement>(null)
+  const loginButtonRef = useRef<HTMLButtonElement>(null)
+  const studyLevelsButtonRef = useRef<HTMLButtonElement>(null)
+
+  // Handle click outside for login dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Close login dropdown if clicked outside
+      if (
+        showLoginOptions && 
+        loginDropdownRef.current && 
+        !loginDropdownRef.current.contains(event.target as Node) &&
+        loginButtonRef.current &&
+        !loginButtonRef.current.contains(event.target as Node)
+      ) {
+        setShowLoginOptions(false)
+      }
+      
+      // Close study levels dropdown if clicked outside
+      if (
+        showStudyLevels && 
+        studyLevelsDropdownRef.current && 
+        !studyLevelsDropdownRef.current.contains(event.target as Node) &&
+        studyLevelsButtonRef.current &&
+        !studyLevelsButtonRef.current.contains(event.target as Node)
+      ) {
+        setShowStudyLevels(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showLoginOptions, showStudyLevels])
+
+  // Function to handle login button click
+  const handleLoginClick = () => {
+    setShowLoginOptions(!showLoginOptions)
+    // Close other dropdowns when opening this one
+    if (showStudyLevels) setShowStudyLevels(false)
+  }
+
+  // Function to handle study levels hover
+  const handleStudyLevelsHover = (open: boolean) => {
+    setShowStudyLevels(open)
+    // Close login dropdown when opening study levels
+    if (open && showLoginOptions) setShowLoginOptions(false)
+  }
 
   return (
-  
-
     <div className="min-h-screen bg-white">
-      {/* Navigation Bar - Fixed at Top WITH OLIVE COLORS */}
+      {/* Navigation Bar - Fixed at Top WITH ORIGINAL LOGO */}
       <nav className="sticky top-0 z-50 bg-olive-50/90 backdrop-blur-md border-b border-olive-200 shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
+            {/* Logo - ORIGINAL DESIGN FROM YOUR FILE */}
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Leaf className="h-8 w-8 text-olive-700" />
-                <span className="text-2xl font-bold text-olive-800 font-serif">Puddle</span>
-              </div>
-              <div className="hidden md:block text-sm text-olive-600 italic">
-                Where curiosity makes ripples
-              </div>
+              <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                {/* Original Logo with Sparkles icon */}
+                <div className="relative">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-olive-400 to-emerald-400 rounded-full blur opacity-30"></div>
+                  <div className="relative bg-gradient-to-br from-olive-500 to-emerald-600 p-2 rounded-full">
+                    <Sparkles className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-2xl font-bold text-olive-800 font-serif tracking-tight">Puddle</span>
+                  <span className="text-xs text-olive-600 italic -mt-1">Where curiosity makes ripples</span>
+                </div>
+              </Link>
             </div>
 
             {/* Desktop Navigation */}
@@ -63,6 +132,74 @@ export default function HomePage() {
                 <Home className="h-4 w-4" />
                 Home
               </Link>
+              
+              {/* Dropdown for Study Levels - Hover enabled */}
+              <div className="relative">
+                <button 
+                  ref={studyLevelsButtonRef}
+                  onMouseEnter={() => handleStudyLevelsHover(true)}
+                  onMouseLeave={() => handleStudyLevelsHover(false)}
+                  onClick={() => handleStudyLevelsHover(!showStudyLevels)}
+                  className="text-olive-700 hover:text-olive-900 font-medium flex items-center gap-2"
+                >
+                  <School className="h-4 w-4" />
+                  Study Levels
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+                
+                {showStudyLevels && (
+                  <div 
+                    ref={studyLevelsDropdownRef}
+                    onMouseEnter={() => handleStudyLevelsHover(true)}
+                    onMouseLeave={() => handleStudyLevelsHover(false)}
+                    className="absolute w-64 bg-white shadow-xl rounded-lg border border-olive-100 mt-2 py-2 z-50"
+                  >
+                    <div className="px-4 py-3 border-b border-olive-100 bg-olive-50">
+                      <div className="text-sm font-bold text-olive-800">Choose Your Learning Path</div>
+                    </div>
+                    <Link 
+                      href="/k12" 
+                      className="flex items-center gap-3 px-4 py-4 hover:bg-olive-50 text-gray-700 transition-colors group"
+                      onClick={() => setShowStudyLevels(false)}
+                    >
+                      <div className="p-2 bg-olive-100 rounded-lg group-hover:bg-olive-200 transition-colors">
+                        <BookMarked className="h-5 w-5 text-olive-600" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">6-10, K-12 (Intermediate) Students</div>
+                        <div className="text-xs text-gray-500">School curriculum for Grades 1-12</div>
+                      </div>
+                    </Link>
+                    <Link 
+                      href="/college" 
+                      className="flex items-center gap-3 px-4 py-4 hover:bg-emerald-50 text-gray-700 transition-colors group"
+                      onClick={() => setShowStudyLevels(false)}
+                    >
+                      <div className="p-2 bg-emerald-100 rounded-lg group-hover:bg-emerald-200 transition-colors">
+                        <School className="h-5 w-5 text-emerald-600" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">College Students</div>
+                        <div className="text-xs text-gray-500">Degree programs and courses</div>
+                      </div>
+                    </Link>
+                    <Link 
+                      href="/competitive" 
+                      className="flex items-center gap-3 px-4 py-4 hover:bg-amber-50 text-gray-700 transition-colors group"
+                      onClick={() => setShowStudyLevels(false)}
+                    >
+                      <div className="p-2 bg-amber-100 rounded-lg group-hover:bg-amber-200 transition-colors">
+                        <Target className="h-5 w-5 text-amber-600" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">Competitive Exams</div>
+                        <div className="text-xs text-gray-500">JEE, NEET, UPSC, and more</div>
+                      </div>
+                    </Link>
+                  </div>
+                )}
+              </div>
+
               <Link href="/exams" className="text-olive-700 hover:text-olive-900 font-medium flex items-center gap-2">
                 <GraduationCap className="h-4 w-4" />
                 Exams
@@ -75,20 +212,140 @@ export default function HomePage() {
                 <DollarSign className="h-4 w-4" />
                 Pricing
               </Link>
-              <Link href="/dashboard" className="text-olive-700 hover:text-olive-900 font-medium flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Dashboard
+              <Link href="/about" className="text-olive-700 hover:text-olive-900 font-medium flex items-center gap-2">
+                <HelpCircle className="h-4 w-4" />
+                About
               </Link>
             </div>
 
-            {/* CTA Buttons */}
+            {/* CTA Buttons with Role-Based Login */}
             <div className="flex items-center gap-4">
-              <Link href="/login" className="hidden md:inline-flex items-center gap-2 text-olive-700 hover:text-olive-900 font-medium">
-                <LogIn className="h-4 w-4" />
-                Login
-              </Link>
+              {/* Login Dropdown - Click outside to close */}
+              <div className="relative">
+                <button 
+                  ref={loginButtonRef}
+                  onClick={handleLoginClick}
+                  className="hidden md:inline-flex items-center gap-2 text-olive-700 hover:text-olive-900 font-medium"
+                >
+                  <LogIn className="h-4 w-4" />
+                  Login
+                </button>
+                
+                {showLoginOptions && (
+                  <div 
+                    ref={loginDropdownRef}
+                    className="absolute right-0 mt-2 w-72 bg-white shadow-xl rounded-lg border border-olive-100 py-3 z-50"
+                  >
+                    <div className="px-4 py-2 border-b border-olive-100 bg-olive-50">
+                      <div className="text-sm font-bold text-olive-800">Select Login Type</div>
+                      <div className="text-xs text-olive-600">Choose your role to continue</div>
+                    </div>
+                    
+                    <div className="space-y-2 p-3">
+                      <button 
+                        onClick={() => setUserType('student')}
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all ${userType === 'student' ? 'bg-olive-50 border border-olive-200' : 'hover:bg-gray-50 border border-transparent'}`}
+                      >
+                        <div className="p-2 bg-olive-100 rounded-lg">
+                          <User className="h-5 w-5 text-olive-600" />
+                        </div>
+                        <div className="text-left flex-1">
+                          <div className="font-medium text-gray-900">Student</div>
+                          <div className="text-xs text-gray-500">For learners of all levels</div>
+                        </div>
+                        {userType === 'student' && (
+                          <div className="w-2 h-2 rounded-full bg-olive-500"></div>
+                        )}
+                      </button>
+                      
+                      <button 
+                        onClick={() => setUserType('creator')}
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all ${userType === 'creator' ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50 border border-transparent'}`}
+                      >
+                        <div className="p-2 bg-blue-100 rounded-lg">
+                          <Edit3 className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div className="text-left flex-1">
+                          <div className="font-medium text-gray-900">Content Creator</div>
+                          <div className="text-xs text-gray-500">Create study materials</div>
+                        </div>
+                        {userType === 'creator' && (
+                          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                        )}
+                      </button>
+                      
+                      <button 
+                        onClick={() => setUserType('reviewer')}
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all ${userType === 'reviewer' ? 'bg-purple-50 border border-purple-200' : 'hover:bg-gray-50 border border-transparent'}`}
+                      >
+                        <div className="p-2 bg-purple-100 rounded-lg">
+                          <Eye className="h-5 w-5 text-purple-600" />
+                        </div>
+                        <div className="text-left flex-1">
+                          <div className="font-medium text-gray-900">Reviewer</div>
+                          <div className="text-xs text-gray-500">Quality check content</div>
+                        </div>
+                        {userType === 'reviewer' && (
+                          <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                        )}
+                      </button>
+                      
+                      <button 
+                        onClick={() => setUserType('designer')}
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all ${userType === 'designer' ? 'bg-pink-50 border border-pink-200' : 'hover:bg-gray-50 border border-transparent'}`}
+                      >
+                        <div className="p-2 bg-pink-100 rounded-lg">
+                          <Palette className="h-5 w-5 text-pink-600" />
+                        </div>
+                        <div className="text-left flex-1">
+                          <div className="font-medium text-gray-900">Graphics Designer</div>
+                          <div className="text-xs text-gray-500">Design learning materials</div>
+                        </div>
+                        {userType === 'designer' && (
+                          <div className="w-2 h-2 rounded-full bg-pink-500"></div>
+                        )}
+                      </button>
+                      
+                      <button 
+                        onClick={() => setUserType('admin')}
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all ${userType === 'admin' ? 'bg-gray-50 border border-gray-200' : 'hover:bg-gray-50 border border-transparent'}`}
+                      >
+                        <div className="p-2 bg-gray-100 rounded-lg">
+                          <Layout className="h-5 w-5 text-gray-600" />
+                        </div>
+                        <div className="text-left flex-1">
+                          <div className="font-medium text-gray-900">Admin</div>
+                          <div className="text-xs text-gray-500">Platform management</div>
+                        </div>
+                        {userType === 'admin' && (
+                          <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+                        )}
+                      </button>
+                    </div>
+                    
+                    <div className="px-4 pt-3 pb-3 border-t border-olive-100">
+                      <Link 
+                        href={`/login?type=${userType}`}
+                        onClick={() => setShowLoginOptions(false)}
+                        className="block w-full text-center bg-gradient-to-r from-olive-500 to-emerald-500 text-white py-3 rounded-lg font-medium hover:opacity-90 transition-opacity shadow-md hover:shadow-lg"
+                      >
+                        Continue as {userType.charAt(0).toUpperCase() + userType.slice(1)}
+                      </Link>
+                      <div className="text-center mt-2">
+                        <button 
+                          onClick={() => setShowLoginOptions(false)}
+                          className="text-xs text-gray-500 hover:text-gray-700"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
               <Link href="/register" className="inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-medium bg-gradient-to-r from-olive-500 to-emerald-500 text-white hover:from-olive-600 hover:to-emerald-600 transition-all shadow-md hover:shadow-lg">
-                <Sprout className="h-4 w-4 mr-2" />
+                <Sparkles className="h-4 w-4 mr-2" />
                 Start Free Trial
               </Link>
               
@@ -106,31 +363,110 @@ export default function HomePage() {
           {isMenuOpen && (
             <div className="md:hidden border-t border-olive-200 py-4">
               <div className="flex flex-col space-y-4">
-                <Link href="/" className="text-olive-700 hover:text-olive-900 font-medium flex items-center gap-3 px-4 py-2">
+                <Link 
+                  href="/" 
+                  className="text-olive-700 hover:text-olive-900 font-medium flex items-center gap-3 px-4 py-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
                   <Home className="h-5 w-5" />
                   Home
                 </Link>
-                <Link href="/exams" className="text-olive-700 hover:text-olive-900 font-medium flex items-center gap-3 px-4 py-2">
+                
+                <div className="px-4">
+                  <div className="text-sm font-medium text-olive-700 mb-2">Study Levels:</div>
+                  <div className="space-y-2 pl-4">
+                    <Link 
+                      href="/k12" 
+                      className="text-olive-600 hover:text-olive-900 font-medium flex items-center gap-3 py-2"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <BookMarked className="h-4 w-4" />
+                      6-10, K-12 (Intermediate) Students
+                    </Link>
+                    <Link 
+                      href="/college" 
+                      className="text-olive-600 hover:text-olive-900 font-medium flex items-center gap-3 py-2"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <School className="h-4 w-4" />
+                      College Students
+                    </Link>
+                    <Link 
+                      href="/competitive" 
+                      className="text-olive-600 hover:text-olive-900 font-medium flex items-center gap-3 py-2"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <Target className="h-4 w-4" />
+                      Competitive Exams
+                    </Link>
+                  </div>
+                </div>
+                
+                <Link 
+                  href="/exams" 
+                  className="text-olive-700 hover:text-olive-900 font-medium flex items-center gap-3 px-4 py-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
                   <GraduationCap className="h-5 w-5" />
                   Exams
                 </Link>
-                <Link href="/tests" className="text-olive-700 hover:text-olive-900 font-medium flex items-center gap-3 px-4 py-2">
+                <Link 
+                  href="/tests" 
+                  className="text-olive-700 hover:text-olive-900 font-medium flex items-center gap-3 px-4 py-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
                   <FileText className="h-5 w-5" />
                   Mock Tests
                 </Link>
-                <Link href="/pricing" className="text-olive-700 hover:text-olive-900 font-medium flex items-center gap-3 px-4 py-2">
+                <Link 
+                  href="/pricing" 
+                  className="text-olive-700 hover:text-olive-900 font-medium flex items-center gap-3 px-4 py-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
                   <DollarSign className="h-5 w-5" />
                   Pricing
                 </Link>
-                <Link href="/dashboard" className="text-olive-700 hover:text-olive-900 font-medium flex items-center gap-3 px-4 py-2">
-                  <User className="h-5 w-5" />
-                  Dashboard
+                <Link 
+                  href="/about" 
+                  className="text-olive-700 hover:text-olive-900 font-medium flex items-center gap-3 px-4 py-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <HelpCircle className="h-5 w-5" />
+                  About
                 </Link>
-                <div className="pt-4 border-t border-olive-200">
-                  <Link href="/login" className="text-olive-700 hover:text-olive-900 font-medium flex items-center gap-3 px-4 py-2">
-                    <LogIn className="h-5 w-5" />
-                    Login
-                  </Link>
+                
+                <div className="pt-4 border-t border-olive-200 px-4">
+                  <div className="text-sm font-medium text-olive-700 mb-2">Login as:</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Link 
+                      href="/login?type=student" 
+                      className="text-center border border-olive-200 text-olive-600 py-2 rounded-lg hover:bg-olive-50"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Student
+                    </Link>
+                    <Link 
+                      href="/login?type=creator" 
+                      className="text-center border border-olive-200 text-olive-600 py-2 rounded-lg hover:bg-olive-50"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Creator
+                    </Link>
+                    <Link 
+                      href="/login?type=reviewer" 
+                      className="text-center border border-olive-200 text-olive-600 py-2 rounded-lg hover:bg-olive-50"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Reviewer
+                    </Link>
+                    <Link 
+                      href="/login?type=admin" 
+                      className="text-center border border-olive-200 text-olive-600 py-2 rounded-lg hover:bg-olive-50"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Admin
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -138,7 +474,7 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* Hero Section - WITH OLIVE COLORS */}
+      {/* Hero Section with original brand message */}
       <section className="relative overflow-hidden bg-gradient-to-br from-olive-50 via-emerald-50 to-white">
         <div className="container mx-auto px-4 py-16 md:py-24">
           <div className="max-w-6xl mx-auto">
@@ -147,27 +483,52 @@ export default function HomePage() {
               
               {/* Left Column - Text Content */}
               <div className="space-y-8">
-                {/* Brand Tagline */}
+                {/* Brand Tagline - Consistent with original */}
                 <div className="inline-flex items-center gap-2 bg-gradient-to-r from-olive-100 to-emerald-100 px-4 py-2 rounded-full">
-                  <Droplets className="h-4 w-4 text-olive-600" />
+                  <Sparkles className="h-4 w-4 text-olive-600" />
                   <span className="text-sm font-medium text-olive-700">
-                    AI-Powered + Subject Matter Experts Learning Platform
+                    AI-Powered & Subject Matter Expert's Curated Learning Platform
                   </span>
                 </div>
                 
-                {/* Main Headline */}
+                {/* Main Headline - Updated but keeping original style */}
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
                   Ace Your <span className="text-olive-600">Competitive</span> Exams
                 </h1>
                 
-                {/* Subheadline */}
+                {/* Subheadline - Original style with expanded content */}
                 <p className="text-xl text-gray-600">
                   Intelligent mock tests, personalized study plans, and real-time analytics 
-                  for JEE, NEET, UPSC, CAT, and more.
+                  for 6-10, K-12 (Intermediate), College, JEE, NEET, UPSC, CAT, and more.
                 </p>
                 
+                {/* Target Audience Grid */}
+                <div className="grid grid-cols-3 gap-4 pt-4">
+                  <div className="text-center p-4 bg-white rounded-xl border border-olive-100">
+                    <div className="inline-flex p-2 bg-olive-100 rounded-lg mb-2">
+                      <School className="h-5 w-5 text-olive-600" />
+                    </div>
+                    <div className="font-medium text-gray-900">6-10, K-12 (Intermediate)</div>
+                    <div className="text-xs text-gray-600">School Curriculum</div>
+                  </div>
+                  <div className="text-center p-4 bg-white rounded-xl border border-olive-100">
+                    <div className="inline-flex p-2 bg-emerald-100 rounded-lg mb-2">
+                      <School className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div className="font-medium text-gray-900">College</div>
+                    <div className="text-xs text-gray-600">Degree Programs</div>
+                  </div>
+                  <div className="text-center p-4 bg-white rounded-xl border border-olive-100">
+                    <div className="inline-flex p-2 bg-amber-100 rounded-lg mb-2">
+                      <Target className="h-5 w-5 text-amber-600" />
+                    </div>
+                    <div className="font-medium text-gray-900">Exams</div>
+                    <div className="text-xs text-gray-600">JEE, NEET, UPSC</div>
+                  </div>
+                </div>
+                
                 {/* CTA Buttons */}
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col sm:flex-row gap-4 pt-6">
                   <Link href="/register" className="inline-flex items-center justify-center rounded-lg px-8 py-4 text-lg font-medium bg-gradient-to-r from-olive-500 to-emerald-500 text-white hover:from-olive-600 hover:to-emerald-600 transition-all shadow-lg hover:shadow-xl hover:scale-105">
                     Start Free Trial
                     <ArrowRight className="ml-2 h-5 w-5" />
@@ -176,91 +537,87 @@ export default function HomePage() {
                     Watch Demo
                   </Link>
                 </div>
-                
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-6 pt-8">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-olive-700">50,000+</div>
-                    <div className="text-sm text-gray-600">Students</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-olive-700">4.9/5</div>
-                    <div className="text-sm text-gray-600">Rating</div>
-                  </div>
-                </div>
               </div>
               
-              {/* Right Column - Dashboard Card */}
-              <div className="relative">
-                <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-olive-100">
-                  {/* Card Header */}
-                  <div className="bg-gradient-to-r from-olive-50 to-emerald-50 p-6 border-b border-olive-100">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-bold text-gray-900 text-xl">Live Mock Test</h3>
-                        <p className="text-sm text-olive-600">JEE Main 2024 - Physics</p>
+              {/* Right Column - Multi-Level Dashboard */}
+              <div className="space-y-6">
+                {/* 6-10, K-12 (Intermediate) Card */}
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-olive-100 transform hover:scale-[1.02] transition-transform">
+                  <div className="bg-gradient-to-r from-olive-50 to-emerald-50 p-4 border-b border-olive-100">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-olive-100 rounded-lg">
+                        <School className="h-5 w-5 text-olive-600" />
                       </div>
-                      <div className="flex items-center gap-2 bg-white text-olive-700 px-3 py-2 rounded-lg">
-                        <Clock className="h-4 w-4" />
-                        <span className="font-bold">02:45:12</span>
+                      <div>
+                        <h3 className="font-bold text-gray-900">Grade 10 - Science</h3>
+                        <p className="text-sm text-olive-600">CBSE Curriculum</p>
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Card Content */}
-                  <div className="p-6">
-                    {/* Progress Section */}
-                    <div className="space-y-6 mb-8">
-                      <div>
-                        <div className="flex justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-700">Accuracy</span>
-                          <span className="text-sm font-bold text-olive-600">87%</span>
-                        </div>
-                        <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-emerald-400 to-olive-500 rounded-full" style={{ width: '87%' }} />
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <div className="flex justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-700">Speed</span>
-                          <span className="text-sm font-bold text-olive-600">2.1 min/Q</span>
-                        </div>
-                        <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-olive-400 to-emerald-500 rounded-full" style={{ width: '75%' }} />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Stats Grid */}
+                  <div className="p-4">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-olive-50 p-4 rounded-xl text-center border border-olive-100">
-                        <div className="text-2xl font-bold text-olive-700">85%</div>
-                        <div className="text-sm text-gray-600">Physics</div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-olive-700">92%</div>
+                        <div className="text-xs text-gray-600">Physics</div>
                       </div>
-                      <div className="bg-emerald-50 p-4 rounded-xl text-center border border-emerald-100">
-                        <div className="text-2xl font-bold text-emerald-700">90%</div>
-                        <div className="text-sm text-gray-600">Chemistry</div>
-                      </div>
-                      <div className="bg-lime-50 p-4 rounded-xl text-center border border-lime-100">
-                        <div className="text-2xl font-bold text-lime-700">80%</div>
-                        <div className="text-sm text-gray-600">Maths</div>
-                      </div>
-                      <div className="bg-amber-50 p-4 rounded-xl text-center border border-amber-100">
-                        <div className="text-2xl font-bold text-amber-700">AIR 245</div>
-                        <div className="text-sm text-gray-600">Rank</div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-emerald-700">88%</div>
+                        <div className="text-xs text-gray-600">Chemistry</div>
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Card Footer */}
-                  <div className="bg-gray-50 p-4 border-t border-olive-100">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Trophy className="h-4 w-4 text-amber-500" />
-                        <span className="text-sm font-medium text-gray-700">Topper&apos;s Choice</span>
+                </div>
+                
+                {/* College Card */}
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-emerald-100 transform hover:scale-[1.02] transition-transform">
+                  <div className="bg-gradient-to-r from-emerald-50 to-teal-50 p-4 border-b border-emerald-100">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-emerald-100 rounded-lg">
+                        <School className="h-5 w-5 text-emerald-600" />
                       </div>
-                      <div className="text-xs text-gray-500">Updated just now</div>
+                      <div>
+                        <h3 className="font-bold text-gray-900">B.Tech 2nd Year</h3>
+                        <p className="text-sm text-emerald-600">Engineering</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-teal-700">85%</div>
+                        <div className="text-xs text-gray-600">Maths</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-blue-700">78%</div>
+                        <div className="text-xs text-gray-600">Programming</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Competitive Exam Card */}
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-amber-100 transform hover:scale-[1.02] transition-transform">
+                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-4 border-b border-amber-100">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-amber-100 rounded-lg">
+                        <Target className="h-5 w-5 text-amber-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900">JEE Main Mock Test</h3>
+                        <p className="text-sm text-amber-600">AIR: 245</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-amber-700">94%</div>
+                        <div className="text-xs text-gray-600">Accuracy</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-orange-700">2.1m/Q</div>
+                        <div className="text-xs text-gray-600">Speed</div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -270,181 +627,253 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Search Section - WITH OLIVE COLORS */}
-      <section className="py-12 bg-gradient-to-r from-olive-50 to-emerald-50">
+      {/* Study Levels Section */}
+      <section className="py-20 bg-gradient-to-b from-white to-olive-50">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-2xl shadow-lg p-8 border border-olive-100">
-              <div className="text-center mb-8">
-                <div className="inline-flex items-center gap-2 mb-4">
-                  <Search className="h-6 w-6 text-olive-600" />
-                  <h2 className="text-3xl font-bold text-gray-900">Find What You Need to Learn</h2>
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              For Every <span className="text-olive-600">Learning Stage</span>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Comprehensive learning solutions tailored to different educational needs
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* 6-10, K-12 (Intermediate) Card */}
+            <div className="bg-white rounded-2xl border border-olive-100 overflow-hidden hover:shadow-xl transition-all">
+              <div className="bg-gradient-to-r from-olive-500 to-emerald-500 p-8 text-white">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/20 rounded-xl">
+                    <School className="h-8 w-8" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold">6-10, K-12 (Intermediate) School</h3>
+                    <p className="text-olive-100">Grades 1-12</p>
+                  </div>
                 </div>
-                <p className="text-gray-600">
-                  Search across 10,000+ questions, 500+ video lectures, and expert-curated content
-                </p>
               </div>
-              
-              {/* Search Bar */}
-              <div className="relative mb-6">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-olive-400" />
-                <input
-                  type="text"
-                  placeholder="Search for topics, questions, or exams..."
-                  className="w-full pl-12 pr-4 py-4 text-lg border-2 border-olive-200 rounded-xl focus:border-olive-500 focus:ring-4 focus:ring-olive-100 outline-none transition-all"
-                />
-                <button className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-olive-500 to-emerald-500 text-white px-6 py-3 rounded-lg hover:opacity-90 transition-opacity">
-                  Search
-                </button>
+              <div className="p-6">
+                <ul className="space-y-3 mb-6">
+                  {['CBSE/ICSE Curriculum', 'Smart Worksheets', 'Animated Videos', 'Parent Dashboard', 'Progress Tracking'].map((item) => (
+                    <li key={item} className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-emerald-500" />
+                      <span className="text-gray-700">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/k12" className="block text-center bg-olive-50 text-olive-700 py-3 rounded-lg font-medium hover:bg-olive-100 transition-colors">
+                  Explore 6-10, K-12 (Intermediate)
+                </Link>
               </div>
-              
-              {/* Trending Topics */}
-              <div className="flex items-center gap-2 text-sm text-olive-700">
-                <TrendingUp className="h-4 w-4" />
-                <span className="font-medium">Trending:</span>
-                {['Integration Calculus', 'Organic Chemistry', 'Indian Polity'].map((topic, i) => (
-                  <span key={topic}>
-                    <button className="hover:text-olive-800 transition-colors">
-                      {topic}
-                    </button>
-                    {i < 2 && <span className="text-olive-300 mx-2">•</span>}
-                  </span>
-                ))}
+            </div>
+            
+            {/* College Card */}
+            <div className="bg-white rounded-2xl border border-emerald-100 overflow-hidden hover:shadow-xl transition-all">
+              <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-8 text-white">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/20 rounded-xl">
+                    <School className="h-8 w-8" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold">College</h3>
+                    <p className="text-emerald-100">Degree Programs</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
+                <ul className="space-y-3 mb-6">
+                  {['B.Tech/B.E. Courses', 'Medical (MBBS)', 'Commerce Stream', 'Arts & Humanities', 'Semester Prep'].map((item) => (
+                    <li key={item} className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-teal-500" />
+                      <span className="text-gray-700">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/college" className="block text-center bg-emerald-50 text-emerald-700 py-3 rounded-lg font-medium hover:bg-emerald-100 transition-colors">
+                  Explore College
+                </Link>
+              </div>
+            </div>
+            
+            {/* Competitive Exams Card */}
+            <div className="bg-white rounded-2xl border border-amber-100 overflow-hidden hover:shadow-xl transition-all">
+              <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-8 text-white">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/20 rounded-xl">
+                    <Target className="h-8 w-8" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold">Competitive Exams</h3>
+                    <p className="text-amber-100">Professional Aspirations</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
+                <ul className="space-y-3 mb-6">
+                  {['JEE Main & Advanced', 'NEET UG & PG', 'UPSC Civil Services', 'CAT/MBA Entrance', 'GATE Engineering'].map((item) => (
+                    <li key={item} className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-amber-500" />
+                      <span className="text-gray-700">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/competitive" className="block text-center bg-amber-50 text-amber-700 py-3 rounded-lg font-medium hover:bg-amber-100 transition-colors">
+                  Explore Exams
+                </Link>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Featured Exams Section - WITH OLIVE COLORS */}
+      {/* Featured Exams Section */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Prepare for Your <span className="text-olive-600">Dream Exam</span>
+              Popular <span className="text-olive-600">Exam Categories</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Comprehensive preparation materials for India&apos;s top competitive exams
+              Preparation for India&apos;s most sought-after examinations
             </p>
           </div>
 
-          {/* Exams Grid - Proper Card Layout */}
+          {/* Exams Grid with Categories */}
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
-                exam: 'JEE Main & Advanced',
-                desc: 'Engineering entrance preparation',
-                students: '2.5L+',
+                exam: 'School Boards',
+                desc: 'CBSE, ICSE, State Boards',
+                icon: <School className="h-6 w-6" />,
                 color: 'olive',
-                icon: '📐'
+                level: '6-10, K-12 (Intermediate)'
               },
               {
-                exam: 'NEET UG',
-                desc: 'Medical entrance exam',
-                students: '1.8L+',
+                exam: 'Engineering',
+                desc: 'JEE, BITSAT, VITEEE',
+                icon: <Calculator className="h-6 w-6" />,
                 color: 'emerald',
-                icon: '🧬'
+                level: 'Competitive'
               },
               {
-                exam: 'UPSC CSE',
-                desc: 'Civil services examination',
-                students: '85K+',
+                exam: 'Medical',
+                desc: 'NEET, AIIMS, JIPMER',
+                icon: <Microscope className="h-6 w-6" />,
                 color: 'teal',
-                icon: '🏛️'
+                level: 'Competitive'
               },
               {
-                exam: 'CAT & MBA',
-                desc: 'Management entrance',
-                students: '75K+',
-                color: 'lime',
-                icon: '📈'
+                exam: 'Civil Services',
+                desc: 'UPSC, State PSC',
+                icon: <Globe className="h-6 w-6" />,
+                color: 'amber',
+                level: 'Professional'
+              },
+              {
+                exam: 'Management',
+                desc: 'CAT, XAT, GMAT',
+                icon: <TrendingUp className="h-6 w-6" />,
+                color: 'blue',
+                level: 'Professional'
+              },
+              {
+                exam: 'Law Entrance',
+                desc: 'CLAT, AILET, LSAT',
+                icon: <BookText className="h-6 w-6" />,
+                color: 'purple',
+                level: 'Professional'
+              },
+              {
+                exam: 'Defence',
+                desc: 'NDA, CDS, AFCAT',
+                icon: <Shield className="h-6 w-6" />,
+                color: 'red',
+                level: 'Competitive'
+              },
+              {
+                exam: 'Science & Research',
+                desc: 'IISER, NEST, JGEEBILS',
+                icon: <Brain className="h-6 w-6" />,
+                color: 'indigo',
+                level: 'Research'
               }
             ].map((exam) => (
               <div key={exam.exam} className="group bg-white rounded-xl border border-olive-100 p-6 hover:shadow-xl hover:border-olive-200 transition-all duration-300">
                 <div className="flex items-start justify-between mb-4">
-                  <div className={`text-3xl p-3 rounded-lg ${
-                    exam.color === 'olive' ? 'bg-olive-100 text-olive-600' :
-                    exam.color === 'emerald' ? 'bg-emerald-100 text-emerald-600' :
-                    exam.color === 'teal' ? 'bg-teal-100 text-teal-600' :
-                    'bg-lime-100 text-lime-600'
-                  }`}>
+                  <div className={`p-3 rounded-lg ${exam.color === 'olive' ? 'bg-olive-100 text-olive-600' : exam.color === 'emerald' ? 'bg-emerald-100 text-emerald-600' : exam.color === 'teal' ? 'bg-teal-100 text-teal-600' : exam.color === 'amber' ? 'bg-amber-100 text-amber-600' : exam.color === 'blue' ? 'bg-blue-100 text-blue-600' : exam.color === 'purple' ? 'bg-purple-100 text-purple-600' : exam.color === 'red' ? 'bg-red-100 text-red-600' : 'bg-indigo-100 text-indigo-600'}`}>
                     {exam.icon}
                   </div>
-                  <TrendingUp className="h-5 w-5 text-gray-400 group-hover:text-olive-500 transition-colors" />
+                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                    exam.level === '6-10, K-12 (Intermediate)' ? 'bg-olive-100 text-olive-800' :
+                    exam.level === 'Competitive' ? 'bg-emerald-100 text-emerald-800' :
+                    exam.level === 'Professional' ? 'bg-blue-100 text-blue-800' :
+                    'bg-purple-100 text-purple-800'
+                  }`}>
+                    {exam.level}
+                  </span>
                 </div>
                 
                 <h3 className="text-xl font-bold mb-2 text-gray-900">{exam.exam}</h3>
                 <p className="text-gray-600 mb-4">{exam.desc}</p>
                 
-                <div className="flex items-center gap-2 text-sm text-olive-700 mb-4">
-                  <Users className="h-4 w-4" />
-                  <span>{exam.students} students</span>
-                </div>
-                
                 <button className="w-full py-2 border border-olive-300 text-olive-700 rounded-lg font-medium hover:bg-olive-50 transition-colors">
-                  Explore Course
+                  Explore
                 </button>
               </div>
             ))}
           </div>
-          
-          <div className="text-center mt-12">
-            <button className="inline-flex items-center justify-center rounded-lg px-8 py-3 text-lg font-medium border-2 border-olive-500 text-olive-600 hover:bg-olive-50 transition-all">
-              View All 25+ Exams
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </button>
-          </div>
         </div>
       </section>
 
-      {/* Features Section - WITH OLIVE COLORS */}
+      {/* Features Section */}
       <section className="py-20 bg-gradient-to-b from-olive-50 to-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Why Choose <span className="text-olive-600">Puddle</span>
+              Why Learners Choose <span className="text-olive-600">Puddle</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Cutting-edge technology combined with proven teaching methodologies
+              From school students to competitive exam aspirants - we support every learning journey
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                icon: <Target className="h-8 w-8 text-white" />,
-                title: "Adaptive Learning",
-                description: "AI adjusts question difficulty based on your performance",
+                icon: <Brain className="h-8 w-8 text-white" />,
+                title: "Adaptive Learning Path",
+                description: "AI creates personalized study plans based on learning style and pace",
                 gradient: "from-olive-500 to-emerald-500"
               },
               {
-                icon: <BarChart3 className="h-8 w-8 text-white" />,
-                title: "Real Analytics",
-                description: "Comprehensive performance tracking with All-India rank comparison",
+                icon: <Users className="h-8 w-8 text-white" />,
+                title: "Multi-Level Support",
+                description: "Dedicated platforms for 6-10, K-12 (Intermediate), college, and competitive exam preparation",
                 gradient: "from-emerald-500 to-teal-500"
               },
               {
-                icon: <Brain className="h-8 w-8 text-white" />,
-                title: "AI-Powered Tests",
-                description: "Intelligent mock tests that simulate actual exam patterns",
+                icon: <BarChart3 className="h-8 w-8 text-white" />,
+                title: "Progress Analytics",
+                description: "Detailed insights for students, parents, and educators",
                 gradient: "from-teal-500 to-cyan-500"
               },
               {
-                icon: <Users className="h-8 w-8 text-white" />,
-                title: "Expert Community",
-                description: "Connect with top educators, toppers, and fellow aspirants",
+                icon: <BookOpen className="h-8 w-8 text-white" />,
+                title: "Rich Content Library",
+                description: "Interactive videos, practice questions, and mock tests",
                 gradient: "from-cyan-500 to-blue-500"
               },
               {
                 icon: <ShieldCheck className="h-8 w-8 text-white" />,
-                title: "Proctored Exams",
-                description: "AI-powered proctoring for authentic exam experience",
+                title: "Safe Learning Environment",
+                description: "Child-safe platform with parental controls for 6-10, K-12 (Intermediate) students",
                 gradient: "from-blue-500 to-indigo-500"
               },
               {
-                icon: <LineChart className="h-8 w-8 text-white" />,
-                title: "College Predictor",
-                description: "AI predicts your chances based on mock test performance",
+                icon: <Trophy className="h-8 w-8 text-white" />,
+                title: "Achievement Recognition",
+                description: "Certificates, badges, and rewards for learning milestones",
                 gradient: "from-indigo-500 to-purple-500"
               }
             ].map((feature, index) => (
@@ -455,173 +884,65 @@ export default function HomePage() {
                 
                 <h3 className="text-xl font-bold mb-3 text-gray-900">{feature.title}</h3>
                 <p className="text-gray-600">{feature.description}</p>
-                
-                <div className="mt-6 pt-4 border-t border-gray-100">
-                  <button className="text-sm text-olive-600 font-medium hover:text-olive-700 flex items-center gap-1">
-                    Learn more <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Stats Section - WITH OLIVE COLORS */}
-      <section className="py-20 bg-gradient-to-r from-olive-600 to-emerald-600 text-white">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[
-              { value: "1M+", label: "Questions Bank", icon: <BookText className="h-8 w-8" /> },
-              { value: "95%", label: "Success Rate", icon: <TrendingUp className="h-8 w-8" /> },
-              { value: "50K+", label: "Active Students", icon: <Users className="h-8 w-8" /> },
-              { value: "4.9", label: "Platform Rating", icon: <Star className="h-8 w-8" /> }
-            ].map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/20 mb-4 mx-auto">
-                  {stat.icon}
-                </div>
-                <div className="text-4xl font-bold mb-2">{stat.value}</div>
-                <div className="text-lg font-medium">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Section - WITH OLIVE COLORS */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Choose Your <span className="text-olive-600">Plan</span>
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Flexible pricing for every aspirant&apos;s needs
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {[
-              {
-                name: "Free",
-                price: "₹0",
-                period: "/forever",
-                description: "Basic access to get started",
-                features: ["10 Mock Tests", "Basic Analytics", "Community Support", "Limited Questions"],
-                cta: "Get Started",
-                popular: false,
-                gradient: "from-gray-100 to-gray-50"
-              },
-              {
-                name: "Pro",
-                price: "₹2,999",
-                period: "/year",
-                description: "Most popular for serious aspirants",
-                features: ["Unlimited Mock Tests", "Advanced Analytics", "AI-Powered Recommendations", "Priority Support", "All-India Ranking"],
-                cta: "Buy Now",
-                popular: true,
-                gradient: "from-olive-500 to-emerald-500"
-              },
-              {
-                name: "Premium",
-                price: "₹4,999",
-                period: "/year",
-                description: "For ultimate preparation",
-                features: ["Everything in Pro", "One-on-One Mentoring", "Proctored Tests", "College Predictor", "Certificate of Excellence"],
-                cta: "Contact Sales",
-                popular: false,
-                gradient: "from-teal-100 to-emerald-50"
-              }
-            ].map((plan) => (
-              <div key={plan.name} className={`bg-white rounded-2xl border-2 ${
-                plan.popular ? 'border-olive-500 shadow-2xl transform scale-105' : 'border-gray-200'
-              } p-6 relative`}>
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <div className="bg-gradient-to-r from-olive-500 to-emerald-500 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
-                      Most Popular
-                    </div>
-                  </div>
-                )}
-                
-                <div className="text-center mb-6 pt-4">
-                  <h3 className="text-2xl font-bold mb-2 text-gray-900">{plan.name}</h3>
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
-                    <span className="text-gray-600">{plan.period}</span>
-                  </div>
-                  <p className="text-gray-600 mt-2">{plan.description}</p>
-                </div>
-                
-                <div className="space-y-3 mb-6">
-                  {plan.features.map((feature) => (
-                    <div key={feature} className="flex items-center gap-3">
-                      <CheckCircle className="h-5 w-5 text-emerald-500" />
-                      <span className="text-gray-700">{feature}</span>
-                    </div>
-                  ))}
-                </div>
-                
-                <button className={`w-full py-3 rounded-lg font-medium transition-all ${
-                  plan.popular 
-                    ? 'bg-gradient-to-r from-olive-500 to-emerald-500 text-white hover:opacity-90 shadow-lg' 
-                    : 'border-2 border-olive-500 text-olive-600 hover:bg-olive-50'
-                }`}>
-                  {plan.cta}
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Footer - WITH OLIVE COLORS */}
+      {/* Footer with original logo */}
       <footer className="bg-gradient-to-r from-olive-800 to-emerald-800 text-white">
         <div className="container mx-auto px-4 py-12">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <Leaf className="h-8 w-8 text-emerald-300" />
-                <h3 className="text-2xl font-bold font-serif">Puddle</h3>
+                {/* Original logo in footer */}
+                <div className="bg-gradient-to-br from-olive-500 to-emerald-600 p-2 rounded-full">
+                  <Sparkles className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold font-serif">Puddle</h3>
+                  <p className="text-emerald-200 text-sm">Where curiosity makes ripples</p>
+                </div>
               </div>
-              <p className="text-emerald-200 text-sm">
-                Start with a splash where every curiosity makes a ripple!
+              <p className="text-emerald-200 text-sm mt-2">
+                Empowering learners at every stage - from school to success.
               </p>
+            </div>
+            
+            <div>
+              <h4 className="font-bold mb-4">Learning Levels</h4>
+              <ul className="space-y-2 text-emerald-200">
+                <li><Link href="/k12" className="hover:text-white">6-10, K-12 (Intermediate) School</Link></li>
+                <li><Link href="/college" className="hover:text-white">College Programs</Link></li>
+                <li><Link href="/competitive" className="hover:text-white">Competitive Exams</Link></li>
+                <li><Link href="/professional" className="hover:text-white">Professional Courses</Link></li>
+              </ul>
             </div>
             
             <div>
               <h4 className="font-bold mb-4">Platform</h4>
               <ul className="space-y-2 text-emerald-200">
-                <li><Link href="/" className="hover:text-white">Home</Link></li>
-                <li><Link href="/exams" className="hover:text-white">Exams</Link></li>
+                <li><Link href="/about" className="hover:text-white">About Us</Link></li>
                 <li><Link href="/tests" className="hover:text-white">Mock Tests</Link></li>
                 <li><Link href="/pricing" className="hover:text-white">Pricing</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-bold mb-4">Resources</h4>
-              <ul className="space-y-2 text-emerald-200">
                 <li><Link href="/blog" className="hover:text-white">Blog</Link></li>
-                <li><Link href="/guides" className="hover:text-white">Study Guides</Link></li>
-                <li><Link href="/faq" className="hover:text-white">FAQ</Link></li>
-                <li><Link href="/contact" className="hover:text-white">Contact</Link></li>
               </ul>
             </div>
             
             <div>
-              <h4 className="font-bold mb-4">Connect</h4>
+              <h4 className="font-bold mb-4">Join As</h4>
               <ul className="space-y-2 text-emerald-200">
-                <li><Link href="/privacy" className="hover:text-white">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="hover:text-white">Terms of Service</Link></li>
-                <li><Link href="/about" className="hover:text-white">About Us</Link></li>
+                <li><Link href="/login?type=student" className="hover:text-white">Student Login</Link></li>
+                <li><Link href="/login?type=creator" className="hover:text-white">Content Creator</Link></li>
+                <li><Link href="/login?type=educator" className="hover:text-white">Educator</Link></li>
+                <li><Link href="/login?type=admin" className="hover:text-white">Admin</Link></li>
               </ul>
             </div>
           </div>
           
           <div className="border-t border-emerald-700 mt-8 pt-8 text-center text-emerald-300 text-sm">
-            © {new Date().getFullYear()} Puddle. All rights reserved.
+            © {new Date().getFullYear()} Puddle - Learning Platform for All Ages. All rights reserved.
           </div>
         </div>
       </footer>

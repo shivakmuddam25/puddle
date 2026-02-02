@@ -8,7 +8,7 @@ const inter = Inter({
 })
 
 export const metadata = {
-  title: 'Educational Platform',
+  title: 'Puddle',
   description: 'A complete platform for students, creators, and reviewers',
 }
 
