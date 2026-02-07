@@ -25,17 +25,18 @@ import {
   ChevronLeft
 } from 'lucide-react';
 import { useState } from 'react';
+import founderPhoto from './founder-photo.jpeg';
 
 export default function AboutPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const founder = {
     name: "Shiva Kumar Muddam",
-    title: "Founder & Chief Educator",
+    title: "Founder & CEO",
     bio: "With dual Master's degrees in Computer Science and Information Technology Management from the USA, Shiva brings over a decade of experience in tech education and content creation. His passion for simplifying complex concepts has helped thousands of students master challenging topics.",
-    education: "Masters in Computer Science, USA | Masters in Information Technology and Management",
+    education: "Masters in Computer Science, USA | Masters in Information Technology and Management, USA",
     philosophy: "Quality education should be accessible, engaging, and practical. Through meticulously crafted content and clear explanations, we empower students to not just learn, but truly understand.",
-    photoUrl: "/founder-photo.jpeg" // Replace with actual image path
+    photoUrl: founderPhoto // Replace with actual image path
   };
 
   const contentValues = [
@@ -225,34 +226,33 @@ export default function AboutPage() {
         <section id="founder" className="mb-20">
           <div className="flex flex-col lg:flex-row gap-12 items-start">
             <div className="lg:w-1/3">
-              <div className="bg-gradient-to-br from-olive-100 to-olive-50 rounded-2xl p-2 shadow-lg border border-olive-200">
-                <div className="relative h-96 w-full rounded-xl overflow-hidden">
-                  {/* Founder Photo Placeholder */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-olive-400 to-olive-600 flex items-center justify-center">
-                    <div className="text-white text-center p-8">
-                      <Users className="h-24 w-24 mx-auto mb-4 opacity-90" />
-                      <p className="text-lg font-semibold">Shiva Kumar Muddam</p>
-                      <p className="text-sm mt-2">Founder & Chief Educator</p>
-                      <p className="text-xs mt-4">Add founder photo here</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <h3 className="text-2xl font-bold text-gray-900">{founder.name}</h3>
-                  <p className="text-olive-700 font-semibold mb-3">{founder.title}</p>
-                  <div className="space-y-3 text-sm text-gray-600">
-                    <div className="flex items-start">
-                      <BookOpen className="h-4 w-4 mr-2 mt-0.5 text-olive-600 flex-shrink-0" />
-                      <span>{founder.education}</span>
-                    </div>
-                    <div className="flex items-start">
-                      <Award className="h-4 w-4 mr-2 mt-0.5 text-olive-600 flex-shrink-0" />
-                      <span>World Green Economy Organization (WGEO) Affiliate</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+			  <div className="bg-gradient-to-br from-olive-100 to-olive-50 rounded-2xl p-2 shadow-lg border border-olive-200">
+				<div className="relative h-96 w-full rounded-xl overflow-hidden">
+				  <Image
+					src={founder.photoUrl}
+					alt={founder.name}
+					fill
+					className="object-cover"
+					sizes="(max-width: 768px) 100vw, 33vw"
+					priority
+				  />
+				</div>
+				<div className="p-6">
+				  <h3 className="text-2xl font-bold text-gray-900">{founder.name}</h3>
+				  <p className="text-olive-700 font-semibold mb-3">{founder.title}</p>
+				  <div className="space-y-3 text-sm text-gray-600">
+					<div className="flex items-start">
+					  <BookOpen className="h-4 w-4 mr-2 mt-0.5 text-olive-600 flex-shrink-0" />
+					  <span>{founder.education}</span>
+					</div>
+					<div className="flex items-start">
+					  <Award className="h-4 w-4 mr-2 mt-0.5 text-olive-600 flex-shrink-0" />
+					  <span>World Green Economy Organization (WGEO), UAE Affiliate</span>
+					</div>
+				  </div>
+				</div>
+			  </div>
+			</div>
 
             <div className="lg:w-2/3">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Our Educational Philosophy</h2>

@@ -10,6 +10,10 @@ const inter = Inter({
 export const metadata = {
   title: 'Puddle',
   description: 'A complete platform for students, creators, and reviewers',
+   icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
 }
 
 export default function RootLayout({

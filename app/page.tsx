@@ -47,30 +47,15 @@ import { useState, useRef, useEffect } from 'react'
 
 export default function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [showLoginOptions, setShowLoginOptions] = useState(false)
   const [showStudyLevels, setShowStudyLevels] = useState(false)
-  const [userType, setUserType] = useState('student')
   
   // Refs for click outside detection
-  const loginDropdownRef = useRef<HTMLDivElement>(null)
   const studyLevelsDropdownRef = useRef<HTMLDivElement>(null)
-  const loginButtonRef = useRef<HTMLButtonElement>(null)
   const studyLevelsButtonRef = useRef<HTMLButtonElement>(null)
 
-  // Handle click outside for login dropdown
+  // Handle click outside for study levels dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // Close login dropdown if clicked outside
-      if (
-        showLoginOptions && 
-        loginDropdownRef.current && 
-        !loginDropdownRef.current.contains(event.target as Node) &&
-        loginButtonRef.current &&
-        !loginButtonRef.current.contains(event.target as Node)
-      ) {
-        setShowLoginOptions(false)
-      }
-      
       // Close study levels dropdown if clicked outside
       if (
         showStudyLevels && 
@@ -87,20 +72,11 @@ export default function HomePage() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [showLoginOptions, showStudyLevels])
-
-  // Function to handle login button click
-  const handleLoginClick = () => {
-    setShowLoginOptions(!showLoginOptions)
-    // Close other dropdowns when opening this one
-    if (showStudyLevels) setShowStudyLevels(false)
-  }
+  }, [showStudyLevels])
 
   // Function to handle study levels hover
   const handleStudyLevelsHover = (open: boolean) => {
     setShowStudyLevels(open)
-    // Close login dropdown when opening study levels
-    if (open && showLoginOptions) setShowLoginOptions(false)
   }
 
   return (
@@ -218,131 +194,13 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* CTA Buttons with Role-Based Login */}
+            {/* CTA Buttons */}
             <div className="flex items-center gap-4">
-              {/* Login Dropdown - Click outside to close */}
-              <div className="relative">
-                <button 
-                  ref={loginButtonRef}
-                  onClick={handleLoginClick}
-                  className="hidden md:inline-flex items-center gap-2 text-olive-700 hover:text-olive-900 font-medium"
-                >
-                  <LogIn className="h-4 w-4" />
-                  Login
-                </button>
-                
-                {showLoginOptions && (
-                  <div 
-                    ref={loginDropdownRef}
-                    className="absolute right-0 mt-2 w-72 bg-white shadow-xl rounded-lg border border-olive-100 py-3 z-50"
-                  >
-                    <div className="px-4 py-2 border-b border-olive-100 bg-olive-50">
-                      <div className="text-sm font-bold text-olive-800">Select Login Type</div>
-                      <div className="text-xs text-olive-600">Choose your role to continue</div>
-                    </div>
-                    
-                    <div className="space-y-2 p-3">
-                      <button 
-                        onClick={() => setUserType('student')}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all ${userType === 'student' ? 'bg-olive-50 border border-olive-200' : 'hover:bg-gray-50 border border-transparent'}`}
-                      >
-                        <div className="p-2 bg-olive-100 rounded-lg">
-                          <User className="h-5 w-5 text-olive-600" />
-                        </div>
-                        <div className="text-left flex-1">
-                          <div className="font-medium text-gray-900">Student</div>
-                          <div className="text-xs text-gray-500">For learners of all levels</div>
-                        </div>
-                        {userType === 'student' && (
-                          <div className="w-2 h-2 rounded-full bg-olive-500"></div>
-                        )}
-                      </button>
-                      
-                      <button 
-                        onClick={() => setUserType('creator')}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all ${userType === 'creator' ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50 border border-transparent'}`}
-                      >
-                        <div className="p-2 bg-blue-100 rounded-lg">
-                          <Edit3 className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div className="text-left flex-1">
-                          <div className="font-medium text-gray-900">Content Creator</div>
-                          <div className="text-xs text-gray-500">Create study materials</div>
-                        </div>
-                        {userType === 'creator' && (
-                          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                        )}
-                      </button>
-                      
-                      <button 
-                        onClick={() => setUserType('reviewer')}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all ${userType === 'reviewer' ? 'bg-purple-50 border border-purple-200' : 'hover:bg-gray-50 border border-transparent'}`}
-                      >
-                        <div className="p-2 bg-purple-100 rounded-lg">
-                          <Eye className="h-5 w-5 text-purple-600" />
-                        </div>
-                        <div className="text-left flex-1">
-                          <div className="font-medium text-gray-900">Reviewer</div>
-                          <div className="text-xs text-gray-500">Quality check content</div>
-                        </div>
-                        {userType === 'reviewer' && (
-                          <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                        )}
-                      </button>
-                      
-                      <button 
-                        onClick={() => setUserType('designer')}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all ${userType === 'designer' ? 'bg-pink-50 border border-pink-200' : 'hover:bg-gray-50 border border-transparent'}`}
-                      >
-                        <div className="p-2 bg-pink-100 rounded-lg">
-                          <Palette className="h-5 w-5 text-pink-600" />
-                        </div>
-                        <div className="text-left flex-1">
-                          <div className="font-medium text-gray-900">Graphics Designer</div>
-                          <div className="text-xs text-gray-500">Design learning materials</div>
-                        </div>
-                        {userType === 'designer' && (
-                          <div className="w-2 h-2 rounded-full bg-pink-500"></div>
-                        )}
-                      </button>
-                      
-                      <button 
-                        onClick={() => setUserType('admin')}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all ${userType === 'admin' ? 'bg-gray-50 border border-gray-200' : 'hover:bg-gray-50 border border-transparent'}`}
-                      >
-                        <div className="p-2 bg-gray-100 rounded-lg">
-                          <Layout className="h-5 w-5 text-gray-600" />
-                        </div>
-                        <div className="text-left flex-1">
-                          <div className="font-medium text-gray-900">Admin</div>
-                          <div className="text-xs text-gray-500">Platform management</div>
-                        </div>
-                        {userType === 'admin' && (
-                          <div className="w-2 h-2 rounded-full bg-gray-500"></div>
-                        )}
-                      </button>
-                    </div>
-                    
-                    <div className="px-4 pt-3 pb-3 border-t border-olive-100">
-                      <Link 
-                        href={`/login?type=${userType}`}
-                        onClick={() => setShowLoginOptions(false)}
-                        className="block w-full text-center bg-gradient-to-r from-olive-500 to-emerald-500 text-white py-3 rounded-lg font-medium hover:opacity-90 transition-opacity shadow-md hover:shadow-lg"
-                      >
-                        Continue as {userType.charAt(0).toUpperCase() + userType.slice(1)}
-                      </Link>
-                      <div className="text-center mt-2">
-                        <button 
-                          onClick={() => setShowLoginOptions(false)}
-                          className="text-xs text-gray-500 hover:text-gray-700"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+              {/* Simple Login Link without dropdown */}
+              <Link href="/login" className="hidden md:inline-flex items-center gap-2 text-olive-700 hover:text-olive-900 font-medium">
+                <LogIn className="h-4 w-4" />
+                Login
+              </Link>
               
               <Link href="/register" className="inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-medium bg-gradient-to-r from-olive-500 to-emerald-500 text-white hover:from-olive-600 hover:to-emerald-600 transition-all shadow-md hover:shadow-lg">
                 <Sparkles className="h-4 w-4 mr-2" />
@@ -436,37 +294,13 @@ export default function HomePage() {
                 </Link>
                 
                 <div className="pt-4 border-t border-olive-200 px-4">
-                  <div className="text-sm font-medium text-olive-700 mb-2">Login as:</div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Link 
-                      href="/login?type=student" 
-                      className="text-center border border-olive-200 text-olive-600 py-2 rounded-lg hover:bg-olive-50"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Student
-                    </Link>
-                    <Link 
-                      href="/login?type=creator" 
-                      className="text-center border border-olive-200 text-olive-600 py-2 rounded-lg hover:bg-olive-50"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Creator
-                    </Link>
-                    <Link 
-                      href="/login?type=reviewer" 
-                      className="text-center border border-olive-200 text-olive-600 py-2 rounded-lg hover:bg-olive-50"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Reviewer
-                    </Link>
-                    <Link 
-                      href="/login?type=admin" 
-                      className="text-center border border-olive-200 text-olive-600 py-2 rounded-lg hover:bg-olive-50"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Admin
-                    </Link>
-                  </div>
+                  <Link 
+                    href="/login" 
+                    className="block w-full text-center bg-olive-500 text-white py-3 rounded-lg font-medium hover:bg-olive-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Login
+                  </Link>
                 </div>
               </div>
             </div>
@@ -933,16 +767,14 @@ export default function HomePage() {
             <div>
               <h4 className="font-bold mb-4">Join As</h4>
               <ul className="space-y-2 text-emerald-200">
-                <li><Link href="/login?type=student" className="hover:text-white">Student Login</Link></li>
-                <li><Link href="/login?type=creator" className="hover:text-white">Content Creator</Link></li>
-                <li><Link href="/login?type=educator" className="hover:text-white">Educator</Link></li>
-                <li><Link href="/login?type=admin" className="hover:text-white">Admin</Link></li>
+                <li><Link href="/login" className="hover:text-white">Login</Link></li>
+                <li><Link href="/register" className="hover:text-white">Register</Link></li>
               </ul>
             </div>
           </div>
           
           <div className="border-t border-emerald-700 mt-8 pt-8 text-center text-emerald-300 text-sm">
-            © {new Date().getFullYear()} Puddle - Learning Platform for All Ages. All rights reserved.
+            © {new Date().getFullYear()} Puddle - All rights reserved.
           </div>
         </div>
       </footer>
