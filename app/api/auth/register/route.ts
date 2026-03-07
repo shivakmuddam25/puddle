@@ -1,23 +1,68 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
-import { supabaseAdmin } from '@/lib/supabase'; // Use admin client
+import { supabaseAdmin } from '@/lib/supabase';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
+function calculateAge(dob: string): number {
+  const birthDate = new Date(dob);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, password, childName, userType, ...additionalData } = await request.json();
+    const {
+      name,
+      email,
+      password,
+      userType,
+      dateOfBirth,
+      childName,
+      grade,
+      school,
+      ...additionalData
+    } = await request.json();
 
-    // Validate input
-    if (!name || !email || !password || userType !== 'parent') {
+    // Basic validation
+    if (!name || !email || !password) {
       return NextResponse.json(
-        { error: 'Name, email, password are required and user must be parent' },
+        { error: 'Name, email, and password are required' },
         { status: 400 }
       );
     }
 
-    // Check if user already exists using admin client
+    if (userType !== 'parent' && userType !== 'student') {
+      return NextResponse.json(
+        { error: 'Invalid user type. Must be "parent" or "student"' },
+        { status: 400 }
+      );
+    }
+
+    // Student age validation
+    if (userType === 'student') {
+      if (!dateOfBirth) {
+        return NextResponse.json(
+          { error: 'Date of birth is required for student registration' },
+          { status: 400 }
+        );
+      }
+      const age = calculateAge(dateOfBirth);
+      if (age < 18) {
+        return NextResponse.json(
+          { error: 'You must be at least 18 years old to register without a parent' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Check if user already exists
     const { data: existingUser } = await supabaseAdmin
       .from('users')
       .select('id')
@@ -35,20 +80,21 @@ export async function POST(request: NextRequest) {
     const bcrypt = await import('bcryptjs');
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Split name into first and last name
+    // Parse name
     const nameParts = name.split(' ');
     const firstName = nameParts[0];
     const lastName = nameParts.slice(1).join(' ') || '';
 
-    // Generate username from email
-    const username = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '') + Date.now().toString().slice(-4);
+    // Generate username
+    const username = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '') +
+      Date.now().toString().slice(-4);
 
-    // Create user using admin client (bypasses RLS)
+    // Create user in `users` table
     const { data: userData, error: userError } = await supabaseAdmin
       .from('users')
       .insert({
         email: email.toLowerCase(),
-        username: username,
+        username,
         password_hash: hashedPassword,
         first_name: firstName,
         last_name: lastName,
@@ -68,62 +114,84 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get parent role
-    const { data: parentRole } = await supabaseAdmin
+    // Assign role
+    const { data: roleData } = await supabaseAdmin
       .from('roles')
       .select('id')
-      .eq('name', 'parent')
+      .eq('name', userType)
       .single();
 
-    // Assign parent role to user
-    if (parentRole) {
+    if (roleData) {
       await supabaseAdmin
         .from('user_roles')
         .insert({
           user_id: userData.id,
-          role_id: parentRole.id,
+          role_id: roleData.id,
           is_active: true,
           assigned_at: new Date().toISOString()
         });
     }
 
-    // Create parent profile using admin client
-    const { data: parentData, error: parentError } = await supabaseAdmin
-      .from('parent_profiles')
-      .insert({
-        user_id: userData.id,
-        phone: additionalData?.phone,
-        address: additionalData?.address
-      })
-      .select()
-      .single();
+    // Create profile based on userType
+    let profileData = null;
+    if (userType === 'parent') {
+      const { data, error } = await supabaseAdmin
+        .from('parent_profiles')
+        .insert({
+          user_id: userData.id,
+          phone: additionalData?.phone,
+          address: additionalData?.address,
+          child_name: childName
+        })
+        .select()
+        .single();
 
-    if (parentError) {
-      console.error('Error creating parent profile:', parentError);
-      // Rollback: delete the user if parent profile creation fails
-      await supabaseAdmin.from('users').delete().eq('id', userData.id);
-      return NextResponse.json(
-        { error: parentError.message || 'Failed to create parent profile' },
-        { status: 500 }
-      );
+      if (error) {
+        console.error('Error creating parent profile:', error);
+        await supabaseAdmin.from('users').delete().eq('id', userData.id);
+        return NextResponse.json(
+          { error: error.message || 'Failed to create parent profile' },
+          { status: 500 }
+        );
+      }
+      profileData = data;
+    } else {
+      // student
+      const { data, error } = await supabaseAdmin
+        .from('student_profiles')
+        .insert({
+          user_id: userData.id,
+          date_of_birth: dateOfBirth,
+          grade: grade || null,
+          school: school || null
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating student profile:', error);
+        await supabaseAdmin.from('users').delete().eq('id', userData.id);
+        return NextResponse.json(
+          { error: error.message || 'Failed to create student profile' },
+          { status: 500 }
+        );
+      }
+      profileData = data;
     }
 
-    // Create JWT token
-	const token = jwt.sign(
-	  {
-		sub: userData.id,           // Standard JWT field for subject/user ID
-		email: userData.email,
-		role: userData.role,        // Use 'role' not 'userType'
-		name: userData.display_name || name
-	  },
-	  JWT_SECRET,
-	  { 
-		expiresIn: '7d',
-		issuer: 'puddle-app'
-	  }
-	);
+    // Generate JWT
+    const token = jwt.sign(
+      {
+        sub: userData.id,
+        email: userData.email,
+        role: userData.role,
+        name: userData.display_name || name
+      },
+      JWT_SECRET,
+      { expiresIn: '7d', issuer: 'puddle-app' }
+    );
 
-    // Set HTTP-only cookie
+    // Set HTTP‑only cookie
     (await cookies()).set('auth_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -143,7 +211,7 @@ export async function POST(request: NextRequest) {
         lastName: userData.last_name,
         username: userData.username
       },
-      profile: parentData,
+      profile: profileData,
       message: 'Registration successful'
     });
   } catch (error: any) {
