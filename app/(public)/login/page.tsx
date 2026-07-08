@@ -41,6 +41,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -58,124 +59,155 @@ export default function LoginPage() {
 
   const handleSignUpClick = () => {
     setIsLogin(false);
+    setErrorMessage(null);
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleSignInClick = () => {
     setIsLogin(true);
+    setErrorMessage(null);
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&response_type=code&scope=email%20profile&state=YOUR_STATE_PARAM';
+    // You'll need to implement Google OAuth with your API
+    window.location.href = '/api/auth/google';
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    setErrorMessage(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+// app/login/page.tsx - Update the handleSubmit function
 
-    try {
-      // Client‑side validation
-      if (!isLogin) {
-        // Sign‑up mode
-        if (userType === 'student') {
-          // Age validation
-          const birthDate = new Date(formData.dateOfBirth);
-          const today = new Date();
-          let age = today.getFullYear() - birthDate.getFullYear();
-          const m = today.getMonth() - birthDate.getMonth();
-          if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsLoading(true);
+  setErrorMessage(null);
 
-          if (age < 18) {
-            alert('You must be at least 18 years old to register without a parent.');
-            setIsLoading(false);
-            return;
-          }
+  try {
+    // Client‑side validation (keep your existing validation code)
+    if (!isLogin) {
+      // Sign‑up mode
+      if (userType === 'student') {
+        const birthDate = new Date(formData.dateOfBirth);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
 
-          if (formData.password !== formData.confirmPassword) {
-            alert('Passwords do not match!');
-            setIsLoading(false);
-            return;
-          }
+        if (age < 18) {
+          setErrorMessage('You must be at least 18 years old to register without a parent.');
+          setIsLoading(false);
+          return;
+        }
 
-          if (!formData.fullName || !formData.email || !formData.password || !formData.dateOfBirth) {
-            alert('Please fill in all required fields');
-            setIsLoading(false);
-            return;
-          }
-        } else {
-          // Parent sign‑up
-          if (formData.password !== formData.confirmPassword) {
-            alert('Passwords do not match!');
-            setIsLoading(false);
-            return;
-          }
-          if (!formData.fullName || !formData.email || !formData.password) {
-            alert('Please fill in all required fields');
-            setIsLoading(false);
-            return;
-          }
+        if (formData.password !== formData.confirmPassword) {
+          setErrorMessage('Passwords do not match!');
+          setIsLoading(false);
+          return;
+        }
+
+        if (!formData.fullName || !formData.email || !formData.password || !formData.dateOfBirth) {
+          setErrorMessage('Please fill in all required fields');
+          setIsLoading(false);
+          return;
         }
       } else {
-        // Login mode
-        if (!formData.email || !formData.password) {
-          alert('Please enter email and password');
+        // Parent sign‑up
+        if (formData.password !== formData.confirmPassword) {
+          setErrorMessage('Passwords do not match!');
+          setIsLoading(false);
+          return;
+        }
+        if (!formData.fullName || !formData.email || !formData.password) {
+          setErrorMessage('Please fill in all required fields');
           setIsLoading(false);
           return;
         }
       }
-
-      // Prepare API payload
-      const payload: any = {
-        email: formData.email,
-        password: formData.password,
-        userType
-      };
-
-      if (!isLogin) {
-        if (userType === 'student') {
-          payload.name = formData.fullName;
-          payload.dateOfBirth = formData.dateOfBirth;
-          payload.grade = formData.grade || undefined;
-          payload.school = formData.school || undefined;
-        } else {
-          payload.name = formData.fullName;
-          payload.childName = formData.childName || undefined;
-        }
+    } else {
+      // Login mode
+      if (!formData.email || !formData.password) {
+        setErrorMessage('Please enter email and password');
+        setIsLoading(false);
+        return;
       }
-
-      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('user', JSON.stringify(data.user));
-
-        if (userType === 'student') {
-          router.push('/student-dashboard');
-        } else {
-          router.push('/parent-dashboard');
-        }
-      } else {
-        const error = await response.json();
-        alert(error.error || 'Authentication failed');
-      }
-    } catch (error) {
-      console.error('Auth error:', error);
-      alert('An error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
-  };
+
+    // Prepare API payload
+    const payload: any = {
+      email: formData.email,
+      password: formData.password,
+      userType
+    };
+
+    if (!isLogin) {
+      if (userType === 'student') {
+        payload.name = formData.fullName;
+        payload.dateOfBirth = formData.dateOfBirth;
+        payload.grade = formData.grade || undefined;
+        payload.school = formData.school || undefined;
+      } else {
+        payload.name = formData.fullName;
+        payload.childName = formData.childName || undefined;
+      }
+    }
+
+    const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // Store the auth token - THIS IS THE CRITICAL FIX
+      if (data.token) {
+        localStorage.setItem('authToken', data.token);
+      }
+      
+      // Store user data
+      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('userType', userType);
+      localStorage.setItem('userEmail', formData.email);
+      localStorage.setItem('userName', data.user.name || formData.fullName || formData.email.split('@')[0]);
+
+      // For student login, also store any existing grade/board if available
+      if (userType === 'student' && data.user) {
+        if (data.user.grade) localStorage.setItem('studentGrade', data.user.grade);
+        if (data.user.gradeLevel) localStorage.setItem('studentGradeLevel', data.user.gradeLevel.toString());
+        if (data.user.board) localStorage.setItem('studentBoard', data.user.board);
+        if (data.user.boardId) localStorage.setItem('studentBoardId', data.user.boardId);
+        if (data.user.id) localStorage.setItem('studentId', data.user.id);
+        if (data.user.name) localStorage.setItem('studentName', data.user.name);
+      }
+
+      // Show success message for registration
+      if (!isLogin) {
+        alert('Registration successful! You can now login.');
+      }
+
+      // Redirect based on user type
+      if (userType === 'student') {
+        router.push('/student-dashboard');
+      } else {
+        router.push('/parent-dashboard');
+      }
+    } else {
+      setErrorMessage(data.error || 'Authentication failed');
+    }
+  } catch (error) {
+    console.error('Auth error:', error);
+    setErrorMessage('An error occurred. Please try again.');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-olive-50/30 to-white">
@@ -210,12 +242,20 @@ export default function LoginPage() {
                 </p>
               </div>
 
+              {/* Error Message Display */}
+              {errorMessage && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-600 text-sm">{errorMessage}</p>
+                </div>
+              )}
+
               {/* User Type Selection */}
               <div className="grid grid-cols-2 gap-4 mb-8">
                 <button
                   onClick={() => {
                     setUserType('student');
-                    setIsLogin(true); // default to login for students
+                    setIsLogin(true);
+                    setErrorMessage(null);
                   }}
                   className={`flex flex-col items-center justify-center p-6 rounded-xl border-2 transition-all ${
                     userType === 'student'
@@ -235,7 +275,10 @@ export default function LoginPage() {
                 </button>
 
                 <button
-                  onClick={() => setUserType('parent')}
+                  onClick={() => {
+                    setUserType('parent');
+                    setErrorMessage(null);
+                  }}
                   className={`flex flex-col items-center justify-center p-6 rounded-xl border-2 transition-all ${
                     userType === 'parent'
                       ? 'border-blue-500 bg-blue-50 shadow-md'
@@ -254,7 +297,7 @@ export default function LoginPage() {
                 </button>
               </div>
 
-              {/* Login/Signup Toggle (visible for both types) */}
+              {/* Login/Signup Toggle */}
               <div className="flex mb-8">
                 <button
                   onClick={handleSignInClick}
@@ -289,7 +332,7 @@ export default function LoginPage() {
                 {/* Extra fields for sign‑up */}
                 {!isLogin && (
                   <>
-                    {/* Full Name (common for both) */}
+                    {/* Full Name */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
                       <div className="relative">
@@ -310,7 +353,7 @@ export default function LoginPage() {
                       </div>
                     </div>
 
-                    {/* Student‑only fields */}
+                    {/* Student-only fields */}
                     {userType === 'student' && (
                       <>
                         <div>
@@ -356,7 +399,7 @@ export default function LoginPage() {
                       </>
                     )}
 
-                    {/* Parent‑only fields */}
+                    {/* Parent-only fields */}
                     {userType === 'parent' && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Child's Name (Optional)</label>
@@ -374,7 +417,7 @@ export default function LoginPage() {
                       </div>
                     )}
 
-                    {/* Confirm Password (always shown on sign‑up) */}
+                    {/* Confirm Password */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password *</label>
                       <div className="relative">
@@ -404,7 +447,7 @@ export default function LoginPage() {
                   </>
                 )}
 
-                {/* Email (always) */}
+                {/* Email */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
                   <div className="relative">
@@ -425,7 +468,7 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                {/* Password (always) */}
+                {/* Password */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Password *</label>
                   <div className="relative">
@@ -453,7 +496,7 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                {/* Login‑only options */}
+                {/* Login-only options */}
                 {isLogin && (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
@@ -504,7 +547,7 @@ export default function LoginPage() {
                   )}
                 </button>
 
-                {/* Terms for sign‑up */}
+                {/* Terms for sign-up */}
                 {!isLogin && (
                   <div className="flex items-start">
                     <input
@@ -538,7 +581,8 @@ export default function LoginPage() {
               {/* Google Login */}
               <button
                 onClick={handleGoogleLogin}
-                className="w-full flex items-center justify-center gap-3 py-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group"
+                disabled={isLoading}
+                className="w-full flex items-center justify-center gap-3 py-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group disabled:opacity-50"
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -549,11 +593,14 @@ export default function LoginPage() {
                 <span className="text-sm font-medium text-gray-700">Continue with Google</span>
               </button>
 
-              {/* Switch between login/signup for both types */}
+              {/* Switch between login/signup */}
               <div className="text-center text-sm text-gray-600">
                 {isLogin ? "Don't have an account? " : "Already have an account? "}
                 <button
-                  onClick={() => setIsLogin(!isLogin)}
+                  onClick={() => {
+                    setIsLogin(!isLogin);
+                    setErrorMessage(null);
+                  }}
                   className="font-medium hover:underline"
                   style={{ color: userType === 'student' ? '#4d7c0f' : '#3b82f6' }}
                 >
@@ -562,8 +609,10 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Right Column - Features (unchanged, omitted for brevity) */}
-            {/* ... */}
+            {/* Right Column - Features (keep your existing features content) */}
+            <div className="hidden lg:block">
+              {/* Add your features content here */}
+            </div>
           </div>
         </div>
       </div>

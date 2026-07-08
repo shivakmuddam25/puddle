@@ -1,3 +1,4 @@
+// sanity/schemaTypes/chemicalFormula.ts
 import { defineField, defineType } from 'sanity'
 
 export const chemicalFormulaType = defineType({
@@ -7,19 +8,33 @@ export const chemicalFormulaType = defineType({
   fields: [
     defineField({
       name: 'formula',
+      title: 'Chemical Formula',
       type: 'string',
-      title: 'Formula (e.g., H₂O)',
+      validation: (rule) => rule.required(),
+      description: 'e.g., H₂O, C₆H₁₂O₆, NaCl',
     }),
     defineField({
       name: 'name',
+      title: 'Compound Name',
       type: 'string',
-      title: 'Compound name',
+      description: 'e.g., Water, Glucose, Sodium Chloride',
+    }),
+    defineField({
+      name: 'description',
+      title: 'Description',
+      type: 'text',
     }),
   ],
   preview: {
-    select: { formula: 'formula', name: 'name' },
-    prepare({ formula, name }) {
-      return { title: formula || 'Chemical formula', subtitle: name }
+    select: {
+      title: 'formula',
+      subtitle: 'name',
+    },
+    prepare({ title, subtitle }) {
+      return {
+        title: title || 'Chemical Formula',
+        subtitle: subtitle,
+      }
     },
   },
 })

@@ -1,194 +1,390 @@
+// app/api/parent/children/[childId]/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { supabaseAdmin } from '@/lib/supabase';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
-// For Next.js 14, params is a Promise
 export async function GET(
-  request: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ childId: string }> }
 ) {
   try {
-    // Await the params Promise
     const { childId } = await params;
+    const token = req.cookies.get('auth_token')?.value;
     
-    const token = request.cookies.get('auth_token')?.value;
+    console.log('GET child profile - childId:', childId);
+    console.log('GET child profile - token exists:', !!token);
     
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    let decoded;
-    try {
-      decoded = jwt.verify(token, JWT_SECRET) as any;
-    } catch (jwtError) {
-      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+    
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    console.log('Decoded token:', { userId: decoded.userId, sub: decoded.sub });
+    
+    // Get parent profile
+    const { data: parentProfile, error: parentError } = await supabaseAdmin
+      .from('parent_profiles')
+      .select('id')
+      .eq('user_id', decoded.userId || decoded.sub)
+      .single();
+    
+    console.log('Parent profile:', parentProfile);
+    
+    if (parentError || !parentProfile) {
+      console.error('Parent profile error:', parentError);
+      return NextResponse.json({ error: 'Parent profile not found' }, { status: 404 });
     }
     
-    if (decoded.role !== 'parent') {
-      return NextResponse.json({ error: 'Forbidden - Parent access required' }, { status: 403 });
-    }
-
-    // Verify parent has access to this child
-    const { data: relationship } = await supabaseAdmin
-      .from('family_relationships')
+    // Get child profile - removed the parent_id filter temporarily to debug
+    const { data: child, error: childError } = await supabaseAdmin
+      .from('student_profiles')
       .select(`
-        parent_id,
-        student_profiles (
+        id,
+        user_id,
+        grade,
+        grade_level,
+        board,
+        board_id,
+        school,
+        gender,
+        date_of_birth,
+        created_at,
+        users!inner (
           id,
-          user_id,
-          grade,
-          date_of_birth,
-          school,
-          created_at,
-          users!inner (
-            id,
-            email,
-            username,
-            first_name,
-            last_name,
-            display_name,
-            created_at
-          )
+          email,
+          username,
+          first_name,
+          last_name,
+          display_name
         )
       `)
-      .eq('student_id', childId)
-      .single();
-
-    if (!relationship) {
-      return NextResponse.json({ 
-        error: 'Child not found or access denied',
-        childId: childId
-      }, { status: 404 });
-    }
-
-    // Get child progress data
-    const { data: progressData } = await supabaseAdmin
-      .from('student_progress')
-      .select('*')
-      .eq('student_id', childId)
-      .order('last_activity', { ascending: false })
-      .limit(1)
-      .single();
-
-    const child = relationship.student_profiles;
+      .eq('id', childId);
     
-    return NextResponse.json({
+    console.log('Raw child query result:', child);
+    console.log('Child query error:', childError);
+    
+    if (childError || !child || child.length === 0) {
+      console.error('Child error:', childError);
+      return NextResponse.json({ error: 'Child not found' }, { status: 404 });
+    }
+    
+    const childData = child[0];
+    
+    // Verify child belongs to parent
+    const { data: relationship, error: relError } = await supabaseAdmin
+      .from('family_relationships')
+      .select('student_id')
+      .eq('parent_id', parentProfile.id)
+      .eq('student_id', childId)
+      .single();
+    
+    console.log('Relationship check:', { relationship, relError });
+    
+    if (relError || !relationship) {
+      console.error('Child does not belong to this parent');
+      return NextResponse.json({ error: 'Child not found or unauthorized' }, { status: 404 });
+    }
+    
+    const responseData = {
       success: true,
       child: {
-        id: child.id,
-        userId: child.user_id,
-        name: child.users.display_name || 
-              `${child.users.first_name} ${child.users.last_name}`.trim() ||
-              child.users.username,
-        email: child.users.email,
-        username: child.users.username,
-        firstName: child.users.first_name,
-        lastName: child.users.last_name,
-        grade: child.grade,
-        dateOfBirth: child.date_of_birth,
-        school: child.school,
-        createdAt: child.created_at,
-        userCreatedAt: child.users.created_at
-      },
-      progress: progressData ? {
-        overallScore: progressData.overall_score || 0,
-        hoursStudied: progressData.total_hours_studied || 0,
-        completedLessons: progressData.completed_lessons || 0,
-        lastActivity: progressData.last_activity,
-        courseName: progressData.course_name || 'General Studies',
-        activeCourses: Math.min(Math.ceil((progressData.completed_lessons || 0) / 10), 5)
-      } : {
-        overallScore: 0,
-        hoursStudied: 0,
-        completedLessons: 0,
-        lastActivity: null,
-        courseName: 'No active course',
-        activeCourses: 0
+        id: childData.id,
+        userId: childData.user_id,
+        name: childData.users.display_name || `${childData.users.first_name || ''} ${childData.users.last_name || ''}`.trim(),
+        email: childData.users.email,
+        firstName: childData.users.first_name,
+        lastName: childData.users.last_name,
+        username: childData.users.username,
+        grade: childData.grade || '',
+        gradeLevel: childData.grade_level || 0,
+        board: childData.board || '',
+        boardId: childData.board_id || '',
+        gender: childData.gender || '',
+        school: childData.school || '',
+        dateOfBirth: childData.date_of_birth || '',
+        createdAt: childData.created_at
+      }
+    };
+    
+    console.log('Sending response:', responseData);
+    
+    return NextResponse.json(responseData, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
       }
     });
-  } catch (error: any) {
-    console.error('Error in GET /api/parent/children/[childId]:', error);
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    );
+    
+  } catch (error) {
+    console.error('Error fetching child:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
+// app/api/parent/children/[childId]/route.ts - Update the PUT method
+
 export async function PUT(
-  request: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ childId: string }> }
 ) {
   try {
-    // Await the params Promise
     const { childId } = await params;
+    const token = req.cookies.get('auth_token')?.value;
+    const body = await req.json();
     
-    const token = request.cookies.get('auth_token')?.value;
+    console.log('PUT - Updating child with data:', body);
+    console.log('PUT - childId:', childId);
     
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    let decoded;
-    try {
-      decoded = jwt.verify(token, JWT_SECRET) as any;
-    } catch (jwtError) {
-      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+    
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    
+    // Get parent profile
+    const { data: parentProfile, error: parentError } = await supabaseAdmin
+      .from('parent_profiles')
+      .select('id')
+      .eq('user_id', decoded.userId || decoded.sub)
+      .single();
+    
+    if (parentError || !parentProfile) {
+      return NextResponse.json({ error: 'Parent profile not found' }, { status: 404 });
     }
     
-    if (decoded.role !== 'parent') {
-      return NextResponse.json({ error: 'Forbidden - Parent access required' }, { status: 403 });
-    }
-
-    const updates = await request.json();
-
-    // Verify parent has access to this child
-    const { data: relationship } = await supabaseAdmin
+    // Verify child belongs to parent
+    const { data: relationship, error: relError } = await supabaseAdmin
       .from('family_relationships')
-      .select('parent_id')
+      .select('student_id')
+      .eq('parent_id', parentProfile.id)
       .eq('student_id', childId)
       .single();
-
-    if (!relationship) {
-      return NextResponse.json({ 
-        error: 'Child not found or access denied',
-        childId: childId 
-      }, { status: 404 });
+    
+    if (relError || !relationship) {
+      return NextResponse.json({ error: 'Child not found or unauthorized' }, { status: 404 });
     }
-
-    // Update child profile
-    const updateData: any = {};
-    if (updates.grade !== undefined) updateData.grade = updates.grade;
-    if (updates.school !== undefined) updateData.school = updates.school;
-    if (updates.dateOfBirth !== undefined) updateData.date_of_birth = updates.dateOfBirth;
-
-    if (Object.keys(updateData).length > 0) {
-      const { error: updateError } = await supabaseAdmin
+    
+    // Get current child to get user_id and current grade
+    const { data: currentChild, error: currentError } = await supabaseAdmin
+      .from('student_profiles')
+      .select('user_id, grade_level')
+      .eq('id', childId)
+      .single();
+    
+    if (currentError || !currentChild) {
+      return NextResponse.json({ error: 'Student profile not found' }, { status: 404 });
+    }
+    
+    // Check if grade has changed
+    const gradeChanged = body.gradeLevel !== undefined && body.gradeLevel !== currentChild.grade_level;
+    
+    // If grade changed, invalidate all active subscriptions
+    if (gradeChanged) {
+      console.log('Grade changed from', currentChild.grade_level, 'to', body.gradeLevel);
+      console.log('Invalidating existing subscriptions...');
+      
+      // Deactivate all active subscriptions for this student
+      const { error: deactivateError } = await supabaseAdmin
+        .from('course_subscriptions')
+        .update({ 
+          is_active: false, 
+          deactivated_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          deactivation_reason: 'grade_change'
+        })
+        .eq('student_id', childId)
+        .eq('is_active', true);
+      
+      if (deactivateError) {
+        console.error('Error deactivating subscriptions:', deactivateError);
+      } else {
+        console.log('All active subscriptions deactivated');
+      }
+      
+      // Deactivate free trials for this student
+      const { error: deactivateTrialError } = await supabaseAdmin
+        .from('free_trial_enrollments')
+        .update({ 
+          is_active: false, 
+          updated_at: new Date().toISOString(),
+          deactivation_reason: 'grade_change'
+        })
+        .eq('student_id', childId)
+        .eq('is_active', true);
+      
+      if (deactivateTrialError) {
+        console.error('Error deactivating free trials:', deactivateTrialError);
+      }
+      
+      // Update student profile status to inactive
+      await supabaseAdmin
         .from('student_profiles')
-        .update(updateData)
+        .update({ 
+          is_active: false,
+          subscription_status: 'inactive',
+          updated_at: new Date().toISOString()
+        })
         .eq('id', childId);
-
-      if (updateError) {
-        console.error('Error updating child profile:', updateError);
-        return NextResponse.json(
-          { error: 'Failed to update child profile' },
-          { status: 500 }
-        );
+      
+      // Deactivate the user
+      await supabaseAdmin
+        .from('users')
+        .update({ 
+          is_active: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', currentChild.user_id);
+      
+      // Log the grade change
+      await supabaseAdmin
+        .from('access_logs')
+        .insert({
+          student_id: childId,
+          user_id: decoded.userId,
+          action: 'grade_change_invalidated_subscriptions',
+          details: {
+            old_grade: currentChild.grade_level,
+            new_grade: body.gradeLevel,
+            subscriptions_deactivated: true,
+            free_trials_deactivated: true
+          },
+          ip_address: req.headers.get('x-forwarded-for'),
+          user_agent: req.headers.get('user-agent')
+        });
+    }
+    
+    // Update student_profiles
+    const updateData: any = {
+      updated_at: new Date().toISOString()
+    };
+    
+    if (body.grade !== undefined && body.grade !== '') updateData.grade = body.grade;
+    if (body.gradeLevel !== undefined && body.gradeLevel !== 0) updateData.grade_level = body.gradeLevel;
+    if (body.board !== undefined) updateData.board = body.board;
+    if (body.boardId !== undefined && body.boardId !== '') updateData.board_id = body.boardId;
+    if (body.school !== undefined) updateData.school = body.school;
+    if (body.gender !== undefined && body.gender !== '') updateData.gender = body.gender;
+    if (body.dateOfBirth !== undefined && body.dateOfBirth !== '') updateData.date_of_birth = body.dateOfBirth;
+    
+    // If grade changed, also reset subscription status
+    if (gradeChanged) {
+      updateData.subscription_status = 'inactive';
+      updateData.subscription_id = null;
+    }
+    
+    const { error: updateError } = await supabaseAdmin
+      .from('student_profiles')
+      .update(updateData)
+      .eq('id', childId);
+    
+    if (updateError) {
+      console.error('Error updating student profile:', updateError);
+      return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
+    }
+    
+    // Update users table
+    if (body.name && body.name !== '') {
+      const nameParts = body.name.trim().split(' ');
+      const firstName = nameParts[0];
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
+      const { error: userUpdateError } = await supabaseAdmin
+        .from('users')
+        .update({
+          first_name: firstName,
+          last_name: lastName,
+          display_name: body.name,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', currentChild.user_id);
+      
+      if (userUpdateError) {
+        console.error('Error updating user:', userUpdateError);
       }
     }
-
-    return NextResponse.json({
+    
+    if (body.gender && body.gender !== '') {
+      const { error: genderUpdateError } = await supabaseAdmin
+        .from('users')
+        .update({ 
+          gender: body.gender,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', currentChild.user_id);
+      
+      if (genderUpdateError) {
+        console.error('Error updating user gender:', genderUpdateError);
+      }
+    }
+    
+    // Fetch updated data to return
+    const { data: updatedChild, error: fetchError } = await supabaseAdmin
+      .from('student_profiles')
+      .select(`
+        id,
+        user_id,
+        grade,
+        grade_level,
+        board,
+        board_id,
+        school,
+        gender,
+        date_of_birth,
+        subscription_status,
+        users!inner (
+          id,
+          email,
+          username,
+          first_name,
+          last_name,
+          display_name
+        )
+      `)
+      .eq('id', childId)
+      .single();
+    
+    if (fetchError) {
+      console.error('Error fetching updated child:', fetchError);
+      return NextResponse.json({ error: 'Failed to fetch updated data' }, { status: 500 });
+    }
+    
+    const responseData = {
       success: true,
-      message: 'Child profile updated successfully',
-      updates: updateData
+      message: gradeChanged ? 'Child updated successfully. Previous subscriptions have been invalidated.' : 'Child updated successfully',
+      gradeChanged: gradeChanged,
+      child: {
+        id: updatedChild.id,
+        userId: updatedChild.user_id,
+        name: updatedChild.users.display_name || `${updatedChild.users.first_name || ''} ${updatedChild.users.last_name || ''}`.trim(),
+        email: updatedChild.users.email,
+        firstName: updatedChild.users.first_name,
+        lastName: updatedChild.users.last_name,
+        username: updatedChild.users.username,
+        grade: updatedChild.grade || '',
+        gradeLevel: updatedChild.grade_level || 0,
+        board: updatedChild.board || '',
+        boardId: updatedChild.board_id || '',
+        gender: updatedChild.gender || '',
+        school: updatedChild.school || '',
+        dateOfBirth: updatedChild.date_of_birth || '',
+        subscriptionStatus: updatedChild.subscription_status
+      }
+    };
+    
+    return NextResponse.json(responseData, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
     });
-  } catch (error: any) {
-    console.error('Error in PUT /api/parent/children/[childId]:', error);
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    );
+    
+  } catch (error) {
+    console.error('Error updating child:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

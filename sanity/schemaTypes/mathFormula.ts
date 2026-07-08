@@ -1,3 +1,4 @@
+// sanity/schemaTypes/mathFormula.ts
 import { defineField, defineType } from 'sanity'
 
 export const mathFormulaType = defineType({
@@ -7,19 +8,28 @@ export const mathFormulaType = defineType({
   fields: [
     defineField({
       name: 'latex',
+      title: 'LaTeX Formula',
       type: 'text',
-      title: 'LaTeX',
+      validation: (rule) => rule.required(),
+      description: 'Enter LaTeX formula, e.g., E = mc^2 or \\int_{0}^{\\infty} e^{-x} dx',
     }),
     defineField({
       name: 'description',
-      type: 'string',
       title: 'Description',
+      type: 'string',
+      description: 'Optional description of the formula',
     }),
   ],
   preview: {
-    select: { latex: 'latex' },
-    prepare({ latex }) {
-      return { title: latex ? `Math: ${latex.substring(0, 30)}` : 'Math formula' }
+    select: {
+      title: 'latex',
+      subtitle: 'description',
+    },
+    prepare({ title, subtitle }) {
+      return {
+        title: title ? `Formula: ${title.substring(0, 50)}` : 'Math Formula',
+        subtitle: subtitle,
+      }
     },
   },
 })

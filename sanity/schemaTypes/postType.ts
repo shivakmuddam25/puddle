@@ -1,56 +1,75 @@
+// sanity/schemaTypes/postType.ts
 import { defineField, defineType } from 'sanity'
 
 export const postType = defineType({
   name: 'post',
-  title: 'Post',
+  title: 'Lesson',
   type: 'document',
   fields: [
     defineField({
       name: 'title',
+      title: 'Lesson Title',
       type: 'string',
       validation: (rule) => rule.required(),
     }),
     defineField({
       name: 'slug',
+      title: 'Slug',
       type: 'slug',
       options: { source: 'title' },
-      validation: (rule) => rule.required(),
+    }),
+    // Remove chapter reference to break circular dependency
+    // defineField({
+    //   name: 'chapter',
+    //   title: 'Chapter',
+    //   type: 'reference',
+    //   to: [{ type: 'chapter' }],
+    // }),
+    defineField({
+      name: 'content',
+      title: 'Content',
+      type: 'array',
+      of: [
+        { type: 'block' },
+        { type: 'image' },
+        { type: 'mediaObject' },
+        { type: 'mathFormula' },
+        { type: 'chemicalFormula' },
+      ],
     }),
     defineField({
       name: 'publishedAt',
+      title: 'Published Date',
       type: 'datetime',
       initialValue: () => new Date().toISOString(),
-      validation: (rule) => rule.required(),
     }),
-    // Optional: keep the top-level image if you still need it
     defineField({
-      name: 'image',
-      type: 'image',
+      name: 'duration',
+      title: 'Duration (minutes)',
+      type: 'number',
     }),
-    // Add a subject field (optional but useful for tagging)
     defineField({
-      name: 'subject',
-      title: 'Subject',
-      type: 'string',
-      options: {
-        list: [
-          { title: 'Mathematics', value: 'math' },
-          { title: 'Chemistry', value: 'chemistry' },
-          { title: 'Physics', value: 'physics' },
-        ],
-      },
+      name: 'order',
+      title: 'Lesson Order',
+      type: 'number',
     }),
-    // Update the body array to include custom blocks
     defineField({
-      name: 'body',
-      type: 'array',
-      of: [
-        { type: 'block' },          // standard rich text
-        { type: 'image' },           // default image block
-        { type: 'mathFormula' },      // your custom math block
-        { type: 'chemicalFormula' },  // your custom chem block
-        { type: 'mediaObject' },       // your custom media block
-      ],
+      name: 'isActive',
+      title: 'Active',
+      type: 'boolean',
+      initialValue: true,
     }),
   ],
+  preview: {
+    select: {
+      title: 'title',
+      subtitle: 'duration',
+    },
+    prepare({ title, subtitle }) {
+      return {
+        title: title || 'Untitled Lesson',
+        subtitle: subtitle ? `${subtitle} min` : 'No duration',
+      }
+    },
+  },
 })

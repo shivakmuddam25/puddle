@@ -138,3 +138,30 @@
   background-color: rgba(131, 156, 101, 0.3); /* olive-500 with opacity */
   color: #1e293b;
 }
+
+
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+.animate-bounce {
+  animation: bounce 0.6s ease-in-out infinite;
+}
+.animation-delay-100 {
+  animation-delay: 0.1s;
+}
+.animation-delay-200 {
+  animation-delay: 0.2s;
+}
+.animation-delay-300 {
+  animation-delay: 0.3s;
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(5deg); }
+  75% { transform: rotate(-5deg); }
+}
+.animate-wiggle {
+  animation: wiggle 0.8s ease-in-out infinite;
+}
